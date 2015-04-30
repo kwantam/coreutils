@@ -12,7 +12,7 @@
 
 extern crate getopts;
 
-use std::io::{self, stdin, Read, Write};
+use std::io::{self, stdin, Read, Write, BufReader};
 use std::path::Path;
 use std::fs::File;
 use std::mem;
@@ -48,16 +48,14 @@ fn cksum(fname: &str) -> io::Result<(u32, usize)> {
     let mut crc = 0u32;
     let mut size = 0usize;
 
-    let mut stdin_buf;
-    let mut file_buf;
-    let rd = match fname {
+    let file;
+    let mut rd : Box<Read> = match fname {
         "-" => {
-            stdin_buf = stdin();
-            &mut stdin_buf as &mut Read
+            Box::new(stdin())
         }
         _ => {
-            file_buf = try!(File::open(&Path::new(fname)));
-            &mut file_buf as &mut Read
+            file = try!(File::open(&Path::new(fname)));
+            Box::new(BufReader::new(file))
         }
     };
 
